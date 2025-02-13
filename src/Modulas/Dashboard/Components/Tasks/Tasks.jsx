@@ -101,7 +101,7 @@ export default function Projects() {
     }
     }
     else{
-      navigate("dashboard/task_board")
+      navigate("/dashboard/task_board")
     }
 
   };
