@@ -86,6 +86,12 @@ export default function Projects() {
       navigate("/dashboard/task_board");
     }
   };
+
+  const statusColors = {
+    ToDo: "rgba(239, 155, 40, 1)", // Orange
+    InProgress: "rgba(66, 133, 244, 1)", // Blue
+    Done: "rgba(52, 168, 83, 1)", // Green
+  };
   // projects
   const [projectList, setprojectList] = useState([]);
   const getProjects = async () => {
@@ -326,7 +332,7 @@ export default function Projects() {
                   <td>
                     <button
                       style={{
-                        backgroundColor: "rgba(239, 155, 40, 0.64)",
+                        backgroundColor: statusColors[item?.status] || "gray", // اللون حسب الحالة
                         padding: "10px 25px",
                         borderRadius: "16px",
                         border: "none",
@@ -337,6 +343,7 @@ export default function Projects() {
                       {item?.status}
                     </button>
                   </td>
+
                   <td>{item?.project?.manager?.userName}</td>
                   <td>{item?.project?.description}</td>
                   <td>

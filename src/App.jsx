@@ -17,7 +17,6 @@ import 'react-toastify/dist/ReactToastify.css';
 import CreateProject from './Modulas/Dashboard/Components/Projects/CreateProject';
 import CreateUsers from './Modulas/Dashboard/Components/Users/CreateUser';
 import CreateTasks from './Modulas/Dashboard/Components/Tasks/CreateTask';
-import TaskBoard from './Modulas/Dashboard/Components/Tasks/TaskBoard';
 import { useContext } from 'react';
 import { AuthContext } from './Context/Components/AuthJWT/AuthJWT';
 import ProjectsWrapper from './Context/Components/AuthJWT/Wrapper';

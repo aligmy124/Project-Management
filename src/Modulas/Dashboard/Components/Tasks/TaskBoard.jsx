@@ -5,7 +5,7 @@ import { TASKS_URL } from "../../../../Backend/URL";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import Loading from "../../../Shared/Components/Loading/Loading";
 
-const TaskBoard = () => {
+export default function TaskBoard(){
   const token = localStorage.getItem("token");
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -185,5 +185,3 @@ const TaskBoard = () => {
     </div>
   );
 };
-
-export default Tasks;
