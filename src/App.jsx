@@ -6,8 +6,6 @@ import Login from './Modulas/Auth/Component/Login/Login';
 import Register from './Modulas/Auth/Component/Register/Register';
 import MasterLayout from './Modulas/Shared/Components/MasterLayout/MasterLayout';
 import Home from './Modulas/Dashboard/Components/Home/Home';
-import Projects from './Modulas/Dashboard/Components/Projects/Projects';
-import Tasks from './Modulas/Dashboard/Components/Tasks/Tasks';
 import Users from './Modulas/Dashboard/Components/Users/Users';
 import Mainpage from './Modulas/Mainpage/Mainpage';
 import Forget from './Modulas/Auth/Component/Forget/Forget';
@@ -20,9 +18,14 @@ import CreateProject from './Modulas/Dashboard/Components/Projects/CreateProject
 import CreateUsers from './Modulas/Dashboard/Components/Users/CreateUser';
 import CreateTasks from './Modulas/Dashboard/Components/Tasks/CreateTask';
 import TaskBoard from './Modulas/Dashboard/Components/Tasks/TaskBoard';
+import { useContext } from 'react';
+import { AuthContext } from './Context/Components/AuthJWT/AuthJWT';
+import ProjectsWrapper from './Context/Components/AuthJWT/Wrapper';
+import WrapperTask from './Context/Components/AuthJWT/WrapperTask';
 
 
 function App() {
+  const loginData=useContext(AuthContext);
   const routes = createBrowserRouter([
     {
       path: '/',
@@ -44,11 +47,10 @@ function App() {
       errorElement: <ErrorPage />,
       children: [
         { index: true, element: <Home /> },
-        { path: "projects", element: <Projects /> },
+        { path: "projects", element:<ProjectsWrapper/> },
         { path: "create_project", element: <CreateProject /> },
-        { path: "tasks", element: <Tasks /> },
+        { path: "tasks", element: <WrapperTask/> },
         { path: "create_task", element: <CreateTasks /> },
-        { path: "task_board", element: <TaskBoard /> },
         { path: "users", element: <Users /> },
         { path: "create_users", element: <CreateUsers /> },
       ]

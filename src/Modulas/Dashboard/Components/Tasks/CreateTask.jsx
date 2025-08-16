@@ -2,13 +2,13 @@ import axios from "axios";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { BASE_TASKS, TASKS_URL } from "../../../../Backend/URL";
+import { BASE_TASKS, Projects_URL, TASKS_URL, USERS_URL } from "../../../../Backend/URL";
 import { useForm } from "react-hook-form";
 
 export default function CreateTasks() {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
-
+  const [Load, setLoad] = useState(true);
   const {
     register,
     handleSubmit,
@@ -29,25 +29,54 @@ export default function CreateTasks() {
       let res = await axios.get(TASKS_URL.manager, {
         headers: { Authorization: `Bearer ${token}` },
       });
+      console.log(res);
 
       const fetchedData = res.data.data;
-      setUsers(fetchedData.map((item) => item.employee));
-      setProjects(fetchedData.map((item) => item.project));
     } catch (error) {
       console.error("Error fetching tasks:", error);
     }
   };
 
+    const getUsers = async () => {
+    try {
+      let res = await axios.get(USERS_URL.AllUsers, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setUsers(res.data.data);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoad(false);
+    }
+  };
+const [projectList, setprojectList] = useState([]);
+  const getProjects = async () => {
+    try {
+      let res = await axios.get(Projects_URL.getAll, {
+        headers: { Authorization: `Bearer ${token}` },
+  
+      });
+      
+      setprojectList(res.data.data);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoad(false);
+    }
+  };
   // استدعاء جلب البيانات عند تحميل الصفحة
   useEffect(() => {
     getTask();
+    getUsers()
+    getProjects()
   }, []);
 
   // إرسال البيانات إلى API
   const createTask = async (data) => {
     try {
       let res = await axios.post(
-        BASE_TASKS,
+        TASKS_URL.create,
         { ...data, employeeId: selectedUser, projectId: selectedProject },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -130,9 +159,9 @@ export default function CreateTasks() {
                 onChange={(e) => setSelectedUser(e.target.value)}
               >
                 <option value="">Open this select menu</option>
-                {users.map((user) => (
-                  <option key={user.id} value={user.id}>
-                    {user.userName}
+                {users.map((user, id) => (
+                  <option key={id} value={user.id}>
+                    {user?.userName}
                   </option>
                 ))}
               </select>
@@ -153,7 +182,7 @@ export default function CreateTasks() {
                 onChange={(e) => setSelectedProject(e.target.value)}
               >
                 <option value="">Open this select menu</option>
-                {projects.map((project) => (
+                {projectList.map((project) => (
                   <option key={project.id} value={project.id}>
                     {project.title}
                   </option>

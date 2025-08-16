@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import axios from "axios";
-import { TASKS_URL } from "../../../../Backend/URL";
+import { Projects_URL, TASKS_URL, USERS_URL } from "../../../../Backend/URL";
 import Dropdown from "react-bootstrap/Dropdown";
 import { FaEllipsisV } from "react-icons/fa"; // أيقونة النقاط الثلاث
 import { toast } from "react-toastify";
@@ -17,11 +17,14 @@ export default function Projects() {
   const { LoginData } = useContext(AuthContext);
   // navigite
   const navigate = useNavigate();
+  // page
+  const [currentPage, setCurrentPage] = useState(1);
   // Register
   const {
     register,
     handleSubmit,
     formState: { errors },
+    reset,
   } = useForm();
   // token
   const token = localStorage.getItem("token");
@@ -39,59 +42,57 @@ export default function Projects() {
   // Model Update
   const [showUpdate, setShowupdate] = useState(false);
   const handleupdateClose = () => setShowupdate(false);
-  const handleupdateShow = (id) => {
-    setId(id);
+  const handleupdateShow = (task) => {
+    setId(task.id);
+    reset({
+      title: task.title,
+      description: task.description,
+      employeeId: task.employee?.id, // أو أي مسار يعيد الـ id
+    });
     setShowupdate(true);
   };
+
   // list
-  const [projectList, setprojectList] = useState([]);
   // Search State
   const [Arrayofpages, setArrayofpages] = useState([]);
   const [search, setSearch] = useState();
 
-  // project api
-
-  // const getProjects = async (title, pageSize, pageNo) => {
-  //   setLoad(true);
-  //   try {
-  //     let res = await axios.get(Projects_URL.getAll, {
-  //       headers: {
-  //         Authorization: `Bearer ${token}`,
-  //       },
-  //       params: { title: title, pageSize: pageSize, pageNumber: pageNo },
-  //     });
-  //     setArrayofpages(
-  //       Array(res.data.totalNumberOfPages)
-  //         .fill()
-  //         .map((_, i) => i + 1)
-  //     );
-  //     console.log(res.data.data);
-  //     setprojectList(res.data.data);
-  //   } catch (error) {
-  //     console.log(error);
-  //     setLoad(false);
-  //   } finally {
-  //     setLoad(false);
-  //   }
-  // };
-
   // Project Api without Load
-  const getProjects = async (title, pageSize, pageNo) => {
-    if(LoginData?.userGroup==="Manager"){
-          try {
-      let res = await axios.get(TASKS_URL.manager, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        params: { title, pageSize, pageNumber: pageNo },
+  const [tasks, setTasks] = useState([]);
+  const getTasks = async (title, pageSize, pageNo) => {
+    if (LoginData?.userGroup === "Manager") {
+      try {
+        let res = await axios.get(TASKS_URL.manager, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          params: { pageNumber: pageNo, pageSize: pageSize, title: title },
+        });
+
+        setArrayofpages(
+          Array(res.data.totalNumberOfPages)
+            .fill()
+            .map((_, i) => i + 1)
+        );
+        console.log(res);
+        setTasks(res.data.data);
+        setCurrentPage(pageNo);
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setLoad(false);
+      }
+    } else {
+      navigate("/dashboard/task_board");
+    }
+  };
+  // projects
+  const [projectList, setprojectList] = useState([]);
+  const getProjects = async () => {
+    try {
+      let res = await axios.get(Projects_URL.getAll, {
+        headers: { Authorization: `Bearer ${token}` },
       });
-
-      setArrayofpages(
-        Array(res.data.totalNumberOfPages)
-          .fill()
-          .map((_, i) => i + 1)
-      );
-
       console.log(res);
       setprojectList(res.data.data);
     } catch (error) {
@@ -99,38 +100,34 @@ export default function Projects() {
     } finally {
       setLoad(false);
     }
-    }
-    else{
-      navigate("/dashboard/task_board")
-    }
+  };
 
+  // users
+  const [users, setUsers] = useState([]);
+  const getUsers = async () => {
+    setLoad(true);
+    try {
+      let res = await axios.get(USERS_URL.AllUsers, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      console.log(res);
+      setUsers(res.data.data);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoad(false);
+    }
   };
 
   // SearchElement
 
   const Searchelement = (input) => {
     setSearch(input.target.value);
-    getProjects(input.target.value, 5, 1);
+    getTasks(input.target.value, 5, 1);
     setLoad(false);
   };
-
-  // delete item
-  // const DeleteItem = async () => {
-  //   try {
-  //     let res = await axios.delete(Projects_URL.delete(id), {
-  //       headers: {
-  //         Authorization: `Bearer ${token}`,
-  //       },
-  //     });
-  //     getProjects();
-  //     toast.success("Delete Successfully");
-  //     handleClose();
-  //   } catch (error) {
-  //     toast.error("Delete Failed!");
-  //     handleClose();
-  //   }
-  // };
-
   // Delete without Load
   const DeleteItem = async () => {
     try {
@@ -139,9 +136,7 @@ export default function Projects() {
           Authorization: `Bearer ${token}`,
         },
       });
-
-      setprojectList((prevList) => prevList.filter((item) => item.id !== id));
-
+      getTasks("", 5, 1);
       toast.success("Delete Successfully");
       handleClose();
     } catch (error) {
@@ -149,28 +144,9 @@ export default function Projects() {
       handleClose();
     }
   };
-
-  // Update Item
-  // const Updateitem = async (data) => {
-  //   try {
-  //     let res = await axios.put(Projects_URL.update(id), data, {
-  //       headers: {
-  //         Authorization: `Bearer ${token}`,
-  //       },
-  //     });
-  //     getProjects();
-  //     toast.success("Update Successfully");
-  //     handleupdateClose();
-  //   } catch (error) {
-  //     toast.error("Update Failed!");
-  //     handleupdateClose();
-  //   }
-  // };
-
   // update without Load
-    // حالة لتخزين القيم المختارة
-    const [selectedUser, setSelectedUser] = useState("");
-    const [selectedProject, setSelectedProject] = useState("");
+  // حالة لتخزين القيم المختارة
+
   const Updateitem = async (data) => {
     try {
       let res = await axios.put(TASKS_URL.update(id), data, {
@@ -178,11 +154,7 @@ export default function Projects() {
           Authorization: `Bearer ${token}`,
         },
       });
-
-      setprojectList((prevList) =>
-        prevList.map((item) => (item.id === id ? { ...item, ...data } : item))
-      );
-
+      getTasks("", 5, 1);
       toast.success("Update Successfully");
       handleupdateClose();
     } catch (error) {
@@ -192,7 +164,9 @@ export default function Projects() {
   };
 
   useEffect(() => {
+    getTasks("", 5, 1);
     getProjects();
+    getUsers();
   }, []);
   return (
     <div className="projectContainer">
@@ -204,7 +178,7 @@ export default function Projects() {
           <i className="fa-regular fa-plus"></i> Add New Task
         </button>
       </div>
-      {/* Model Delete */}
+      {/* modal */}
       <Modal show={show} onHide={handleClose}>
         <Modal.Header closeButton></Modal.Header>
         <Modal.Body>
@@ -222,112 +196,100 @@ export default function Projects() {
           </Button>
         </Modal.Footer>
       </Modal>
-      {/* Model Update */}
-      <Modal show={showUpdate} onHide={handleupdateClose} centered>
-  <Modal.Header closeButton>
-    <Modal.Title className="fw-bold text-dark">Update Task</Modal.Title>
-  </Modal.Header>
-  <Modal.Body>
-    <div className="card shadow-lg p-4 w-100 m-auto rounded-4 border-0">
-      <form onSubmit={handleSubmit(Updateitem)}>
-        {/* حقل العنوان */}
-        <div className="form-group mb-3">
-          <label htmlFor="title" className="form-label ">
-            Title
-          </label>
+      {/* update */}
+      <Modal show={showUpdate} onHide={handleupdateClose}>
+        <Modal.Header closeButton></Modal.Header>
+        <Modal.Body>
+          <div className="update_item">
+            <form onSubmit={handleSubmit(Updateitem)}>
+              <div className="form-group mb-4">
+                <label htmlFor="title">Title</label>
+                <input
+                  className="form-control"
+                  type="text"
+                  id="title"
+                  placeholder="title"
+                  {...register("title", {
+                    required: "title is required",
+                  })}
+                />
+                {errors.title && (
+                  <p className="text-danger">{errors.title.message}</p>
+                )}
+              </div>
+              <div className="form-group">
+                <label htmlFor="textArea">Description</label>
+                <textarea
+                  className="form-control"
+                  id="textArea"
+                  rows="3"
+                  placeholder="description"
+                  {...register("description", {
+                    required: "description is required",
+                  })}
+                ></textarea>
+                {errors.description && (
+                  <p className="text-danger">{errors.description.message}</p>
+                )}
+              </div>
+              <div className="form-group mb-4">
+                <label htmlFor="employeeId">Assign to Employee</label>
+                <select
+                  className="form-control"
+                  id="employeeId"
+                  {...register("employeeId", {
+                    required: "Employee is required",
+                  })}
+                >
+                  <option value="">-- Select Employee --</option>
+                  {users.map((user) => (
+                    <option key={user.id} value={user.id}>
+                      {user.userName}
+                    </option>
+                  ))}
+                </select>
+                {errors.employeeId && (
+                  <p className="text-danger">{errors.employeeId.message}</p>
+                )}
+              </div>
+
+              <Modal.Footer>
+                <Button variant="success" onClick={handleupdateClose}>
+                  Close
+                </Button>
+                <Button
+                  variant="border border-danger text-danger"
+                  type="submit"
+                >
+                  Update Item
+                </Button>
+              </Modal.Footer>
+            </form>
+          </div>
+        </Modal.Body>
+      </Modal>
+      <form className="w-50 mb-4">
+        <div className="input-group mb-3">
+          <div className="input-group-prepend">
+            <span
+              className="input-group-text"
+              id="basic-addon1"
+              style={{ height: "32px", cursor: "pointer" }}
+            >
+              <i className="fa-solid fa-magnifying-glass "></i>
+            </span>
+          </div>
           <input
             type="text"
-            className="form-control border-0 shadow-sm p-3 rounded-3"
-            placeholder="Enter task title"
-            id="title"
-            {...register("title", { required: "Title is required" })}
+            className="form-control"
+            placeholder="title"
+            aria-label="title"
+            aria-describedby="basic-addon1"
+            style={{ height: "32px", borderRadius: "8px" }}
+            onChange={Searchelement}
           />
-          {errors.title && <span className="text-danger">{errors.title.message}</span>}
-        </div>
-
-        {/* حقل الوصف */}
-        <div className="form-group mb-3">
-          <label htmlFor="description" className="form-label ">
-            Description
-          </label>
-          <textarea
-            className="form-control border-0 shadow-sm p-3 rounded-3"
-            placeholder="Enter task description"
-            id="description"
-            rows="3"
-            {...register("description", { required: "Description is required" })}
-          />
-          {errors.description && <span className="text-danger">{errors.description.message}</span>}
-        </div>
-
-        <div className="row">
-          {/* اختيار المستخدم */}
-          <div className="col-md-6 mb-3">
-            <label htmlFor="employeeId" className="form-label ">
-              Assigned User
-            </label>
-            <select
-              className="form-select border-0 shadow-sm p-3 rounded-3"
-              {...register("employeeId", { required: "User is required" })}
-              onChange={(e) => setSelectedUser(e.target.value)}
-            >
-              <option value="">Select a User</option>
-              {projectList.map((user) => (
-                <option key={user.id} value={user.id}>
-                  {user.employee.userName}
-                </option>
-              ))}
-            </select>
-            {errors.employeeId && <span className="text-danger">{errors.employeeId.message}</span>}
-          </div>
-
-          {/* اختيار المشروع */}
-          <div className="col-md-6 mb-3">
-            <label htmlFor="projectId" className="form-label ">
-              Project
-            </label>
-            <select
-              className="form-select border-0 shadow-sm p-3 rounded-3"
-              {...register("projectId", { required: "Project is required" })}
-              onChange={(e) => setSelectedProject(e.target.value)}
-            >
-              <option value="">Select a Project</option>
-              {projectList.map((project) => (
-                <option key={project.id} value={project.id}>
-                  {project.project.title}
-                </option>
-              ))}
-            </select>
-            {errors.projectId && <span className="text-danger">{errors.projectId.message}</span>}
-          </div>
-        </div>
-
-        {/* الأزرار */}
-        <div className="d-flex justify-content-between mt-4">
-          <button
-            type="button"
-            onClick={() => navigate("/dashboard/tasks")}
-            className="btn btn-outline-secondary px-4 py-2 rounded-3 "
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            className="btn text-white px-4 py-2 rounded-3 "
-            style={{
-              backgroundColor: "#EF9B28",
-              border: "none",
-              transition: "0.3s ease-in-out",
-            }}
-          >
-            Update Task
-          </button>
         </div>
       </form>
-    </div>
-  </Modal.Body>
-</Modal>
-
       {/* Table */}
       {Load ? (
         <div
@@ -345,28 +307,6 @@ export default function Projects() {
         <NoData />
       ) : (
         <div className="table-container mt-4">
-          <form className="w-50 mb-4">
-            <div className="input-group mb-3">
-              <div className="input-group-prepend">
-                <span
-                  className="input-group-text"
-                  id="basic-addon1"
-                  style={{ height: "32px", cursor: "pointer" }}
-                >
-                  <i className="fa-solid fa-magnifying-glass "></i>
-                </span>
-              </div>
-              <input
-                type="text"
-                className="form-control"
-                placeholder="title"
-                aria-label="title"
-                aria-describedby="basic-addon1"
-                style={{ height: "32px", borderRadius: "8px" }}
-                onChange={Searchelement}
-              />
-            </div>
-          </form>
           <table className="table text-center">
             <thead>
               <tr>
@@ -379,14 +319,14 @@ export default function Projects() {
               </tr>
             </thead>
             <tbody>
-              {projectList.map((item, index) => (
+              {tasks.map((item, index) => (
                 <tr key={index}>
                   <th scope="row">{index + 1}</th>
                   <td>{item?.title}</td>
                   <td>
                     <button
                       style={{
-                        backgroundColor:"rgba(239, 155, 40, 0.64)",
+                        backgroundColor: "rgba(239, 155, 40, 0.64)",
                         padding: "10px 25px",
                         borderRadius: "16px",
                         border: "none",
@@ -394,11 +334,11 @@ export default function Projects() {
                         cursor: "pointer",
                       }}
                     >
-                      {item.status}
+                      {item?.status}
                     </button>
                   </td>
-                  <td>{item?.employee.userName}</td>
-                  <td>{item?.project.description}</td>
+                  <td>{item?.project?.manager?.userName}</td>
+                  <td>{item?.project?.description}</td>
                   <td>
                     <Dropdown>
                       <Dropdown.Toggle
@@ -409,13 +349,9 @@ export default function Projects() {
                       </Dropdown.Toggle>
 
                       <Dropdown.Menu>
-                        <Dropdown.Item href="#/view">
-                          <i className="fa-regular fa-eye text-success "></i>{" "}
-                          View
-                        </Dropdown.Item>
                         <Dropdown.Item
                           href="#/edit"
-                          onClick={() => handleupdateShow(item.id)}
+                          onClick={() => handleupdateShow(item)}
                         >
                           <i className="fa-regular fa-pen-to-square text-success"></i>{" "}
                           Edit
@@ -436,23 +372,43 @@ export default function Projects() {
           </table>
           <div className="pagination-container mt-3">
             <ul className="pagination">
-              <li className="page-item">
+              {/* Previous */}
+              <li
+                className={`page-item ${currentPage === 1 ? "disabled" : ""}`}
+                onClick={() =>
+                  currentPage > 1 && getTasks(search, 5, currentPage - 1)
+                }
+              >
                 <a className="page-link" href="#" aria-label="Previous">
                   <span aria-hidden="true">&laquo;</span>
                 </a>
               </li>
+
+              {/* Page Numbers */}
               {Arrayofpages.map((pageNo) => (
                 <li
                   key={pageNo}
-                  className="page-item"
-                  onClick={() => getProjects(search, 5, pageNo)}
+                  className={`page-item ${
+                    pageNo === currentPage ? "active" : ""
+                  }`}
+                  onClick={() => getTasks(search, 5, pageNo)}
                 >
                   <a className="page-link" href="#">
                     {pageNo}
                   </a>
                 </li>
               ))}
-              <li className="page-item">
+
+              {/* Next */}
+              <li
+                className={`page-item ${
+                  currentPage === Arrayofpages.length ? "disabled" : ""
+                }`}
+                onClick={() =>
+                  currentPage < Arrayofpages.length &&
+                  getTasks(search, 5, currentPage + 1)
+                }
+              >
                 <a className="page-link" href="#" aria-label="Next">
                   <span aria-hidden="true">&raquo;</span>
                 </a>

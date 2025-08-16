@@ -3,61 +3,98 @@ import { motion } from "framer-motion";
 import axios from "axios";
 import { TASKS_URL } from "../../../../Backend/URL";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import Loading from "../../../Shared/Components/Loading/Loading";
 
-const Tasks = () => {
-  // token
+const TaskBoard = () => {
   const token = localStorage.getItem("token");
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Assigned Tasks
-  const [assign, setAssign] = useState([]);
+  // Status colors mapping
+  const statusColors = {
+    ToDo: "rgba(239, 155, 40, 1)",       // Orange
+    InProgress: "rgba(66, 133, 244, 1)",  // Blue
+    Done: "rgba(52, 168, 83, 1)"          // Green
+  };
 
-  // Fetch Assigned Tasks
-  useEffect(() => {
-    const AssignedTask = async () => {
-      try {
-        let res = await axios.get(TASKS_URL.getallAssignedTask, {
-          headers: { Authorization: `${token}` },
-        });
-        setAssign(res.data.data);
-      } catch (error) {
-        console.log(error);
-      }
-    };
-
-    AssignedTask();
-  }, []);
-
-  // Update task status when dropped
-  const changeStatus = async (taskId, newStatus) => {
+  // Fetch assigned tasks
+  const fetchTasks = async () => {
     try {
-      // تحديث الحالة محليًا قبل الطلب للسيرفر لتحسين تجربة المستخدم
-      setAssign((prevTasks) =>
-        prevTasks.map((task) =>
-          task._id === taskId ? { ...task, status: newStatus } : task
+      setLoading(true);
+      const res = await axios.get(TASKS_URL.getallAssignedTask, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setTasks(res.data.data || []);
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+      setError("Failed to load tasks. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Update task status on drag and drop
+  const updateTaskStatus = async (taskId, newStatus) => {
+    try {
+      // Optimistic UI update
+      setTasks(prevTasks => 
+        prevTasks.map(task => 
+          task.id === taskId ? { ...task, status: newStatus } : task
         )
       );
 
-      // إرسال الطلب للسيرفر
+      // API call to update status
       await axios.put(
-        `${TASKS_URL.change}/${taskId}`,
+        `${TASKS_URL.change(taskId)}`,
         { status: newStatus },
-        { headers: { Authorization: `${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
     } catch (error) {
-      console.log(error);
+      console.error("Error updating task:", error);
+      // Revert UI if API call fails
+      fetchTasks();
+      setError("Failed to update task status. Please try again.");
     }
   };
 
-  // Handle Drag & Drop Event
+  // Handle drag and drop
   const onDragEnd = (result) => {
-    if (!result.destination) return;
-
     const { source, destination, draggableId } = result;
 
+    // Dropped outside the list
+    if (!destination) return;
+
+    // No change in position
+    if (
+      source.droppableId === destination.droppableId &&
+      source.index === destination.index
+    ) {
+      return;
+    }
+
+    // Status changed
     if (source.droppableId !== destination.droppableId) {
-      changeStatus(draggableId, destination.droppableId);
+      updateTaskStatus(Number(draggableId), destination.droppableId);
     }
   };
+
+  useEffect(() => {
+    fetchTasks();
+  }, []);
+
+  if (loading) return <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              height: "50vh",
+              textAlign: "center",
+            }}
+          >
+            <Loading />
+          </div>;
+  if (error) return <div className="alert alert-danger text-center">{error}</div>;
 
   return (
     <div className="container mt-5">
@@ -68,51 +105,80 @@ const Tasks = () => {
       </div>
 
       <DragDropContext onDragEnd={onDragEnd}>
-        <div className="row justify-content-center">
-          {["ToDo", "InProgress", "Done"].map((status, index) => (
-            <motion.div
-              key={index}
-              className="col-md-4 mb-3"
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 * index }}
-            >
-              <Droppable droppableId={status}>
-                {(provided) => (
-                  <div
-                    ref={provided.innerRef}
-                    {...provided.droppableProps}
-                    className="text-white p-3 rounded"
-                    style={{ minHeight: "400px", backgroundColor: "rgba(49, 89, 81, 0.9)" }}
-                  >
-                    <h5 className="text-center mb-3">
-                      {status === "ToDo" ? "To Do" : status}
-                    </h5>
-                    {assign
-                      .filter((item) => item.status === status)
-                      .map((task, index) => (
-                        <Draggable key={task._id} draggableId={task._id} index={index}>
-                          {(provided) => (
-                            <motion.div
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              {...provided.dragHandleProps}
-                              className="text-dark p-2 mb-2 rounded"
-                              style={{
-                                backgroundColor: "rgba(239, 155, 40, 1)",
-                                transition: "transform 0.2s ease-in-out",
-                              }}
-                            >
-                              {task.taskName}
-                            </motion.div>
-                          )}
-                        </Draggable>
-                      ))}
-                    {provided.placeholder}
-                  </div>
-                )}
-              </Droppable>
-            </motion.div>
+        <div className="row">
+          {["ToDo", "InProgress", "Done"].map((status) => (
+            <div key={status} className="col-md-4 mb-4">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Droppable droppableId={status}>
+                  {(provided) => (
+                    <div
+                      ref={provided.innerRef}
+                      {...provided.droppableProps}
+                      className="p-3 rounded shadow-sm"
+                      style={{
+                        minHeight: "500px",
+                        backgroundColor: "rgba(245, 245, 245, 0.9)"
+                      }}
+                    >
+                      <h5 className="text-center mb-4 p-2 rounded text-white"
+                        style={{ backgroundColor: statusColors[status] }}>
+                        {status === "ToDo" ? "To Do" : 
+                         status === "InProgress" ? "In Progress" : "Done"}
+                      </h5>
+                      
+                      {tasks
+                        .filter(task => task.status === status)
+                        .map((task, index) => (
+                          <Draggable
+                            key={task.id}
+                            draggableId={String(task.id)}
+                            index={index}
+                          >
+                            {(provided, snapshot) => (
+                              <motion.div
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}
+                                className="p-3 mb-3 rounded shadow-sm"
+                                style={{
+                                  backgroundColor: snapshot.isDragging 
+                                    ? "rgba(255, 255, 255, 0.9)" 
+                                    : "white",
+                                  borderLeft: `4px solid ${statusColors[status]}`,
+                                  ...provided.draggableProps.style
+                                }}
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                              >
+                                <h6 className="mb-2">{task.title}</h6>
+                                <p className="small text-muted mb-1">
+                                  {task.description.replace(/<[^>]*>/g, '').substring(0, 80)}
+                                  {task.description.length > 80 && '...'}
+                                </p>
+                                {task.project && (
+                                  <span className="badge bg-secondary me-2">
+                                    {task.project.title}
+                                  </span>
+                                )}
+                                {task.employee && (
+                                  <span className="badge bg-info">
+                                    {task.employee.userName}
+                                  </span>
+                                )}
+                              </motion.div>
+                            )}
+                          </Draggable>
+                        ))}
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+              </motion.div>
+            </div>
           ))}
         </div>
       </DragDropContext>

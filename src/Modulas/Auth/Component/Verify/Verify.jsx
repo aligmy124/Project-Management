@@ -16,7 +16,7 @@ export default function Verify() {
     } = useForm();
     const onSubmit = async (data) => {
       try {
-        let res=await axios.post(USERS_URL.verify,data)
+        let res=await axios.put(USERS_URL.verify,data)
         console.log(res);
         navigate("/dashboard");
       } catch (error) {

@@ -1,107 +1,162 @@
-import * as React from "react";
+import React, { useEffect, useState } from "react";
+import { Bar, Pie } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+} from "chart.js";
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement
+);
+
 import { Card, Row, Col, Container } from "react-bootstrap";
 import Header from "../../../Shared/Components/Header/Header";
-import HomeImg1 from "../../../../assets/images/HomeImg1.png";
-import HomeImg2 from "../../../../assets/images/numPro.png";
-import pro3 from "../../../../assets/images/pro3.png";
 import { AuthContext } from "../../../../Context/Components/AuthJWT/AuthJWT";
+import { Projects_URL, TASKS_URL, USERS_URL } from "../../../../Backend/URL";
 
+import axios from "axios";
 export default function Home() {
   // context
   const { LoginData } = React.useContext(AuthContext);
+  const token = localStorage.getItem("token");
+  const [project, setProject] = useState([]);
+  const getProjects = async () => {
+    let Url;
+        if (LoginData?.userGroup === "Manager") {
+          Url = Projects_URL.getAll;
+        } else {
+          Url = Projects_URL.getEmployee;
+        }
+    try {
+      let res = await axios.get(Url, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      console.log(res, "pro");
+      setProject(res.data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  const [users, setUsers] = useState([]);
+  const getUsers = async () => {
+    try {
+      let res = await axios.get(USERS_URL.count, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      console.log(res, "users");
+      setUsers(res.data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
+  const [task, setTask] = useState([]);
+  const getTasks = async () => {
+    try {
+      let res = await axios.get(TASKS_URL.manager, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      console.log(res, "task");
+      setTask(res.data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  const [fetchTask, setFetchTask] = useState([]);
+  const fetchTasks = async () => {
+      try {
+        const res = await axios.get(TASKS_URL.getallAssignedTask, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        console.log(res,"employee");
+        setFetchTask(res.data)
+      } catch (error) {
+        console.error("Error fetching tasks:", error);
+      } 
+    };
+    const taskCount = LoginData.userGroup === "Manager"
+  ? task?.totalNumberOfRecords || task?.length || 0
+  : fetchTask.totalNumberOfRecords || 0;
+  useEffect(() => {
+    getTasks();
+    getUsers();
+    getProjects();
+    fetchTasks()
+  }, []);
   return (
     <>
       <Header />
       <Container className="home mt-5">
-        <Row className="justify-content-center">
-          {/* الكارد الأول */}
-          <Col xs={12} md={6} lg={5} className="mb-4">
-            <Card className="p-3 shadow-sm border-primary custom-card h-100 d-flex flex-column">
-              <h5 className="fw-bold">Tasks</h5>
-              <p className="text-muted flex-grow-1">
-                Lorem ipsum dolor sit amet, consectetur
-              </p>
-              <Row>
-                <Col xs={12} sm={4} className="text-center mb-2 mb-sm-0">
-                  <Card className="p-3 rounded custom-inner-card h-100 d-flex flex-column">
-                    <div className="img-card">
-                      <img
-                        src={HomeImg1}
-                        alt="HomeImg1"
-                        className="img-fluid"
-                      />
-                    </div>
-                    <p className="fw-bold mb-1 text-muted">Progress</p>
-                    <h5 className="text-primary">$7328.32</h5>
-                  </Card>
-                </Col>
-                <Col xs={12} sm={4} className="text-center mb-2 mb-sm-0">
-                  <Card className="p-3 bg-light rounded custom-inner-card h-100 d-flex flex-column">
-                    <div className="img-card">
-                      <img
-                        src={HomeImg2}
-                        alt="HomeImg2"
-                        className="img-fluid"
-                      />
-                    </div>
-                    <p className="fw-bold mb-1 text-muted">Tasks Number</p>
-                    <h5 className="text-success">1293</h5>
-                  </Card>
-                </Col>
-                <Col xs={12} sm={4} className="text-center">
-                  <Card className="p-3 bg-light rounded custom-inner-card h-100 d-flex flex-column">
-                    <div className="img-card">
-                      <img src={pro3} alt="pro3" className="img-fluid" />
-                    </div>
-                    <p className="fw-bold mb-1 text-muted">Projects Number</p>
-                    <h5 className="text-danger">32</h5>
-                  </Card>
-                </Col>
-              </Row>
-            </Card>
-          </Col>
+<Row className="justify-content-center my-4">
+  {/* الكارد الأول: Projects & Tasks */}
+  <Col xs={12} md={6} lg={5}>
+    <Card className="p-3 shadow-sm h-100">
+      <h5 className="fw-bold mb-3">Projects & Tasks Overview</h5>
+      <div style={{ width: "100%", height: "300px" }}>
+        <Bar
+          data={{
+            labels: ["Projects", "Tasks"],
+            datasets: [
+              {
+                label: "Count",
+                data: [
+                  project?.totalNumberOfRecords || 0,
+                  taskCount
+                ],
+                backgroundColor: ["#3C81F5", "#F69E0A"],
+              },
+            ],
+          }}
+          options={{
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: "top" } },
+          }}
+        />
+      </div>
+    </Card>
+  </Col>
 
-          {/* الكارد الثاني */}
-          {LoginData.userGroup === "Manager" && (
-            <Col xs={12} md={6} lg={5} className="mb-4">
-              <Card className="p-3 shadow-sm border-primary custom-card h-100 d-flex flex-column">
-                <h5 className="fw-bold">Users</h5>
-                <p className="text-muted flex-grow-1">
-                  Lorem ipsum dolor sit amet, consectetur
-                </p>
-                <Row>
-                  <Col xs={12} sm={4} className="text-center mb-2 mb-sm-0">
-                    <Card className="p-3 bg-light rounded custom-inner-card h-100 d-flex flex-column">
-                      <div className="img-card">
-                        <img
-                          src={HomeImg1}
-                          alt="HomeImg1"
-                          className="img-fluid"
-                        />
-                      </div>
-                      <p className="fw-bold mb-1 text-muted">Active</p>
-                      <h5 className="text-primary">$7328.32</h5>
-                    </Card>
-                  </Col>
-                  <Col xs={12} sm={4} className="text-center mb-2 mb-sm-0">
-                    <Card className="p-3 bg-light rounded custom-inner-card h-100 d-flex flex-column">
-                      <div className="img-card">
-                        <img
-                          src={HomeImg2}
-                          alt="HomeImg2"
-                          className="img-fluid"
-                        />
-                      </div>
-                      <p className="fw-bold mb-1 text-muted">Inactive</p>
-                      <h5 className="text-success">1293</h5>
-                    </Card>
-                  </Col>
-                </Row>
-              </Card>
-            </Col>
-          )}
-        </Row>
+  {/* الكارد الثاني: Users */}
+  {LoginData.userGroup === "Manager" && (
+    <Col xs={12} md={6} lg={5}>
+      <Card className="p-3 shadow-sm h-100">
+        <h5 className="fw-bold mb-3">Users Overview</h5>
+        <div style={{ width: "100%", height: "300px" }}>
+          <Pie
+            data={{
+              labels: ["Active", "Inactive"],
+              datasets: [
+                {
+                  data: [
+                    users?.activatedEmployeeCount || 0,
+                    users?.deactivatedEmployeeCount || 0,
+                  ],
+                  backgroundColor: ["#3C81F5", "#F69E0A"],
+                },
+              ],
+            }}
+            options={{ responsive: true, maintainAspectRatio: false }}
+          />
+        </div>
+      </Card>
+    </Col>
+  )}
+</Row>
+
       </Container>
     </>
   );

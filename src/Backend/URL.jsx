@@ -14,6 +14,7 @@ export const USERS_URL={
     delete:(id)=>`${BASE_USERS}/${id}`,
     create:`${BASE_USERS}/Create`,
     AllUsers:`${BASE_USERS}`,
+    count:`${BASE_USERS}/count`
 }
 //Projects
 export const BASE_Projects=`${BASE_URL}/Project`;
@@ -32,5 +33,6 @@ export const TASKS_URL={
     update:(id)=>`${BASE_TASKS}/${id}`,
     delete:(id)=>`${BASE_TASKS}/${id}`,
     getallAssignedTask:`${BASE_TASKS}`,
+    create:`${BASE_TASKS}`,
     change:(id)=>`${BASE_TASKS}/${id}/change-status`,
 }

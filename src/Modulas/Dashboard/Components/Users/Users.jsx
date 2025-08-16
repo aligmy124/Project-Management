@@ -1,52 +1,49 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { USERS_URL } from "../../../../Backend/URL";
 import Dropdown from "react-bootstrap/Dropdown";
-import { FaEllipsisV } from "react-icons/fa"; // أيقونة النقاط الثلاث
-import { useForm } from "react-hook-form";
+import { FaEllipsisV } from "react-icons/fa";
 import NoData from "../../../Shared/Components/NoData/NoData";
 import Loading from "../../../Shared/Components/Loading/Loading";
-import { useNavigate } from "react-router-dom";
+
+// 📌 Helper function for debounce
+function debounce(func, delay) {
+  let timeout;
+  return (...args) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), delay);
+  };
+}
 
 export default function Users() {
-  // pagination
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const pageSize = 150; // عدد العناصر في كل صفحة
-
-  // usenavigate
-  const navigate = useNavigate();
-  // Register
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm();
-  // token
   const token = localStorage.getItem("token");
-  // Id
-  const [id, setId] = useState();
-  // Loading
+
   const [Load, setLoad] = useState(true);
-  // list
-  const [projectList, setprojectList] = useState([]);
-  // Search State
+  const [users, setUsers] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
   const [Arrayofpages, setArrayofpages] = useState([]);
-  const [search, setSearch] = useState();
-  // project api
-  const getProjects = async (userName = "", pageNo = 1) => {
-    setLoad(true);
+  const [search, setSearch] = useState("");
+
+  // ✅ Get Users API
+  const getUsers = async (pageSize, pageNo, title) => {
+    if (pageNo === 1 && !title) setLoad(true); // Loading بس أول مرة أو بحث فاضي
     try {
       let res = await axios.get(USERS_URL.AllUsers, {
-        headers: {
-          Authorization: `Bearer ${token}`,
+        headers: { Authorization: `Bearer ${token}` },
+        params: {
+          pageSize: pageSize,
+          pageNumber: pageNo,
+          userName: title,
         },
-        params: { userName, pageSize, pageNumber: pageNo },
       });
 
-      setTotalPages(res.data.totalNumberOfPages); // تحديث عدد الصفحات
-      setprojectList(res.data.data);
-      setCurrentPage(pageNo); // تحديث الصفحة الحالية
+      setArrayofpages(
+        Array(res.data.totalNumberOfPages)
+          .fill()
+          .map((_, i) => i + 1)
+      );
+      setUsers(res.data.data);
+      setCurrentPage(pageNo);
     } catch (error) {
       console.log(error);
     } finally {
@@ -54,26 +51,30 @@ export default function Users() {
     }
   };
 
-  // SearchElement
+  // ✅ Debounced Search
+  const debouncedSearch = useCallback(
+    debounce((value) => {
+      getUsers(200, 1, value);
+    }, 500),
+    []
+  );
+
   const Searchelement = (input) => {
-    setSearch(input.target.value);
-    getProjects(input.target.value, 200, 1);
-    setLoad(false);
+    const value = input.target.value;
+    setSearch(value);
+    debouncedSearch(value);
   };
 
-  // Toggle Status
+  // ✅ Toggle Status
   const ToggleUsersStatus = async (id, isActivated) => {
     try {
-      let response = await axios.put(
+      await axios.put(
         USERS_URL.toggle(id),
         {},
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
+        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
       );
-      setprojectList((prevList) =>
+
+      setUsers((prevList) =>
         prevList.map((user) =>
           user.id === id ? { ...user, isActivated: !user.isActivated } : user
         )
@@ -84,7 +85,7 @@ export default function Users() {
   };
 
   useEffect(() => {
-    getProjects();
+    getUsers(200, 1, "");
   }, []);
 
   return (
@@ -93,11 +94,8 @@ export default function Users() {
         <div className="title-info">
           <h2>Users</h2>
         </div>
-        {/* <button onClick={() => navigate("/dashboard/create_users")}>
-          <i className="fa-regular fa-plus"></i> Add New User
-        </button> */}
       </div>
-      {/* Table */}
+
       {Load ? (
         <div
           style={{
@@ -110,10 +108,11 @@ export default function Users() {
         >
           <Loading />
         </div>
-      ) : projectList.length === 0 ? (
+      ) : users.length === 0 ? (
         <NoData />
       ) : (
         <div className="table-container mt-4">
+          {/* ✅ Search Box */}
           <form className="w-50 mb-4">
             <div className="input-group mb-3">
               <div className="input-group-prepend">
@@ -132,10 +131,13 @@ export default function Users() {
                 aria-label="userName"
                 aria-describedby="basic-addon1"
                 style={{ height: "32px", borderRadius: "8px" }}
+                value={search}
                 onChange={Searchelement}
               />
             </div>
           </form>
+
+          {/* ✅ Table */}
           <table className="table text-center">
             <thead>
               <tr>
@@ -148,8 +150,8 @@ export default function Users() {
               </tr>
             </thead>
             <tbody>
-              {projectList.map((item, index) => (
-                <tr key={index}>
+              {users.map((item, index) => (
+                <tr key={item.id}>
                   <th scope="row">{index + 1}</th>
                   <td>{item.userName}</td>
                   <td>
@@ -201,56 +203,49 @@ export default function Users() {
               ))}
             </tbody>
           </table>
+
+          {/* ✅ Pagination */}
           <div className="pagination-container mt-3">
             <ul className="pagination">
-              {/* زر السابق */}
               <li
                 className={`page-item ${currentPage === 1 ? "disabled" : ""}`}
                 onClick={() =>
-                  currentPage > 1 && getProjects(search, currentPage - 1)
+                  currentPage > 1 && getUsers(200, currentPage - 1, search)
                 }
               >
-                <a className="page-link" href="#">
-                  «
+                <a className="page-link" href="#" aria-label="Previous">
+                  <span aria-hidden="true">&laquo;</span>
                 </a>
               </li>
 
-              {/* أزرار الصفحات */}
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                (pageNo) => (
-                  <li
-                    key={pageNo}
-                    className={`page-item ${
-                      currentPage === pageNo ? "active" : ""
-                    }`}
-                    onClick={() => getProjects(search, pageNo)}
-                  >
-                    <a className="page-link" href="#">
-                      {pageNo}
-                    </a>
-                  </li>
-                )
-              )}
+              {Arrayofpages.map((pageNo) => (
+                <li
+                  key={pageNo}
+                  className={`page-item ${
+                    pageNo === currentPage ? "active" : ""
+                  }`}
+                  onClick={() => getUsers(200, pageNo, search)}
+                >
+                  <a className="page-link" href="#">
+                    {pageNo}
+                  </a>
+                </li>
+              ))}
 
-              {/* زر التالي */}
               <li
                 className={`page-item ${
-                  currentPage === totalPages ? "disabled" : ""
+                  currentPage === Arrayofpages.length ? "disabled" : ""
                 }`}
                 onClick={() =>
-                  currentPage < totalPages &&
-                  getProjects(search, currentPage + 1)
+                  currentPage < Arrayofpages.length &&
+                  getUsers(200, currentPage + 1, search)
                 }
               >
-                <a className="page-link" href="#">
-                  »
+                <a className="page-link" href="#" aria-label="Next">
+                  <span aria-hidden="true">&raquo;</span>
                 </a>
               </li>
             </ul>
-            <p className="text-center mt-2">
-              Showing <strong>{currentPage}</strong> of{" "}
-              <strong>{totalPages}</strong> pages
-            </p>
           </div>
         </div>
       )}

@@ -22,14 +22,13 @@ export default function Register() {
           Authorization: `Bearer ${token}`,
         },
       });
-      navigate("/dashboard"); // Redirect to login page after successful registration
-      toast.success("Register Successfully")
+      navigate("/verify"); // Redirect to login page after successful registration
+      toast.success("Register Successfully");
     } catch (error) {
       console.error(error);
-      if(error.status===409){
-        toast.error("The username or email already exists in the database.")
+      if (error.response?.status === 409) {
+        toast.error("The username or email already exists in the database.");
       }
-      
     }
   };
 
@@ -38,31 +37,31 @@ export default function Register() {
       <div className="container">
         <div className="row justify-content-center">
           <div className="col-md-8 bg-form p-5 rounded">
-          <div className="title">
-            <p
-              style={{
-                color: "rgba(255, 255, 255, 1)",
-                fontSize: "13px",
-                fontWeight: "500",
-                marginBottom: "0",
-              }}
-            >
-              welcome to PMS
-            </p>
-            <h3
-              style={{
-                color: "rgba(239, 155, 40, 1)",
-                borderBottom: "4px solid rgba(239, 155, 40, 1)",
-                width: "12px",
-                fontSize: "30px",
-                fontWeight: "700",
-                lineHeight: "46px",
-              }}
-              className="mb-4"
-            >
-              Register
-            </h3>
-          </div>
+            <div className="title">
+              <p
+                style={{
+                  color: "rgba(255, 255, 255, 1)",
+                  fontSize: "13px",
+                  fontWeight: "500",
+                  marginBottom: "0",
+                }}
+              >
+                welcome to PMS
+              </p>
+              <h3
+                style={{
+                  color: "rgba(239, 155, 40, 1)",
+                  borderBottom: "4px solid rgba(239, 155, 40, 1)",
+                  width: "12px",
+                  fontSize: "30px",
+                  fontWeight: "700",
+                  lineHeight: "46px",
+                }}
+                className="mb-4"
+              >
+                Register
+              </h3>
+            </div>
             <form onSubmit={handleSubmit(onSubmit)}>
               <div className="row">
                 {/* العمود الأول */}
@@ -71,7 +70,7 @@ export default function Register() {
                     <label
                       htmlFor="userName"
                       className=""
-                      style={{color:"rgba(239, 155, 40, 1)"}}
+                      style={{ color: "rgba(239, 155, 40, 1)" }}
                     >
                       Username
                     </label>
@@ -92,14 +91,16 @@ export default function Register() {
                   </div>
 
                   <div className="mb-3">
-                    <label htmlFor="email" className="" style={{color:"rgba(239, 155, 40, 1)"}}>
+                    <label
+                      htmlFor="email"
+                      className=""
+                      style={{ color: "rgba(239, 155, 40, 1)" }}
+                    >
                       Email
                     </label>
                     <input
                       type="email"
-                      className={`  ${
-                        errors.email ? "is-invalid" : ""
-                      }`}
+                      className={`  ${errors.email ? "is-invalid" : ""}`}
                       id="email"
                       placeholder="Enter your email"
                       {...register("email", { required: "Email is required" })}
@@ -115,15 +116,13 @@ export default function Register() {
                     <label
                       htmlFor="country"
                       className=""
-                      style={{color:"rgba(239, 155, 40, 1)"}}
+                      style={{ color: "rgba(239, 155, 40, 1)" }}
                     >
                       Country
                     </label>
                     <input
                       type="text"
-                      className={`  ${
-                        errors.country ? "is-invalid" : ""
-                      }`}
+                      className={`  ${errors.country ? "is-invalid" : ""}`}
                       id="country"
                       placeholder="Enter your country"
                       {...register("country", {
@@ -144,15 +143,13 @@ export default function Register() {
                     <label
                       htmlFor="phoneNumber"
                       className=""
-                      style={{color:"rgba(239, 155, 40, 1)"}}
+                      style={{ color: "rgba(239, 155, 40, 1)" }}
                     >
                       Phone Number
                     </label>
                     <input
                       type="text"
-                      className={`  ${
-                        errors.phoneNumber ? "is-invalid" : ""
-                      }`}
+                      className={`  ${errors.phoneNumber ? "is-invalid" : ""}`}
                       id="phoneNumber"
                       placeholder="Enter your phone number"
                       {...register("phoneNumber", {
@@ -170,15 +167,13 @@ export default function Register() {
                     <label
                       htmlFor="password"
                       className=""
-                      style={{color:"rgba(239, 155, 40, 1)"}}
+                      style={{ color: "rgba(239, 155, 40, 1)" }}
                     >
                       Password
                     </label>
                     <input
                       type="password"
-                      className={`  ${
-                        errors.password ? "is-invalid" : ""
-                      }`}
+                      className={`  ${errors.password ? "is-invalid" : ""}`}
                       id="password"
                       placeholder="Enter your password"
                       {...register("password", {
@@ -196,7 +191,7 @@ export default function Register() {
                     <label
                       htmlFor="confirmPassword"
                       className=""
-                      style={{color:"rgba(239, 155, 40, 1)"}}
+                      style={{ color: "rgba(239, 155, 40, 1)" }}
                     >
                       Confirm Password
                     </label>

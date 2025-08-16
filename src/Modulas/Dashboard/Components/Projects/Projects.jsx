@@ -12,7 +12,7 @@ import NoData from "../../../Shared/Components/NoData/NoData";
 import Loading from "../../../Shared/Components/Loading/Loading";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../../../Context/Components/AuthJWT/AuthJWT";
-export default function Projects() {
+export default function ProjectsAdmin() {
   // Context
   const { LoginData } = useContext(AuthContext);
   // navigite
@@ -22,6 +22,7 @@ export default function Projects() {
     register,
     handleSubmit,
     formState: { errors },
+    reset
   } = useForm();
   // token
   const token = localStorage.getItem("token");
@@ -39,8 +40,12 @@ export default function Projects() {
   // Model Update
   const [showUpdate, setShowupdate] = useState(false);
   const handleupdateClose = () => setShowupdate(false);
-  const handleupdateShow = (id) => {
-    setId(id);
+  const handleupdateShow = (item) => {
+     reset({
+      title: item.title,
+      description: item.description,
+    });
+    setId(item.id);
     setShowupdate(true);
   };
   // list
@@ -48,56 +53,22 @@ export default function Projects() {
   // Search State
   const [Arrayofpages, setArrayofpages] = useState([]);
   const [search, setSearch] = useState();
-
-  // project api
-
-  // const getProjects = async (title, pageSize, pageNo) => {
-  //   setLoad(true);
-  //   try {
-  //     let res = await axios.get(Projects_URL.getAll, {
-  //       headers: {
-  //         Authorization: `Bearer ${token}`,
-  //       },
-  //       params: { title: title, pageSize: pageSize, pageNumber: pageNo },
-  //     });
-  //     setArrayofpages(
-  //       Array(res.data.totalNumberOfPages)
-  //         .fill()
-  //         .map((_, i) => i + 1)
-  //     );
-  //     console.log(res.data.data);
-  //     setprojectList(res.data.data);
-  //   } catch (error) {
-  //     console.log(error);
-  //     setLoad(false);
-  //   } finally {
-  //     setLoad(false);
-  //   }
-  // };
-
   // Project Api without Load
   const getProjects = async (title, pageSize, pageNo) => {
-    let Url
-    if(LoginData?.userGroup==="Manager"){
-      Url=Projects_URL.getAll
-    }
-    else{
-      Url=Projects_URL.getEmployee
-    }
+    console.log("Params:", { title, pageSize, pageNumber: pageNo });
+
     try {
-      let res = await axios.get(Url, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        params: { title, pageSize, pageNumber: pageNo },
+      let res = await axios.get(Projects_URL.getAll, {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { title, pageSize: pageSize, pageNumber: pageNo },
       });
-  
       setArrayofpages(
         Array(res.data.totalNumberOfPages)
           .fill()
           .map((_, i) => i + 1)
       );
-      console.log(res.data.data)
+      console.log(res);
+
       setprojectList(res.data.data);
     } catch (error) {
       console.log(error);
@@ -105,7 +76,7 @@ export default function Projects() {
       setLoad(false);
     }
   };
-  
+
   // SearchElement
 
   const Searchelement = (input) => {
@@ -114,23 +85,6 @@ export default function Projects() {
     setLoad(false);
   };
 
-  // delete item
-  // const DeleteItem = async () => {
-  //   try {
-  //     let res = await axios.delete(Projects_URL.delete(id), {
-  //       headers: {
-  //         Authorization: `Bearer ${token}`,
-  //       },
-  //     });
-  //     getProjects();
-  //     toast.success("Delete Successfully");
-  //     handleClose();
-  //   } catch (error) {
-  //     toast.error("Delete Failed!");
-  //     handleClose();
-  //   }
-  // };
-  
   // Delete without Load
   const DeleteItem = async () => {
     try {
@@ -141,7 +95,7 @@ export default function Projects() {
       });
 
       setprojectList((prevList) => prevList.filter((item) => item.id !== id));
-  
+
       toast.success("Delete Successfully");
       handleClose();
     } catch (error) {
@@ -149,23 +103,6 @@ export default function Projects() {
       handleClose();
     }
   };
-  
-  // Update Item
-  // const Updateitem = async (data) => {
-  //   try {
-  //     let res = await axios.put(Projects_URL.update(id), data, {
-  //       headers: {
-  //         Authorization: `Bearer ${token}`,
-  //       },
-  //     });
-  //     getProjects();
-  //     toast.success("Update Successfully");
-  //     handleupdateClose();
-  //   } catch (error) {
-  //     toast.error("Update Failed!");
-  //     handleupdateClose();
-  //   }
-  // };
 
   // update without Load
   const Updateitem = async (data) => {
@@ -175,11 +112,11 @@ export default function Projects() {
           Authorization: `Bearer ${token}`,
         },
       });
-  
+
       setprojectList((prevList) =>
         prevList.map((item) => (item.id === id ? { ...item, ...data } : item))
       );
-  
+
       toast.success("Update Successfully");
       handleupdateClose();
     } catch (error) {
@@ -187,21 +124,24 @@ export default function Projects() {
       handleupdateClose();
     }
   };
-  
+
   useEffect(() => {
-    getProjects();
-  }, []);
+    if (LoginData?.userGroup) {
+      getProjects("", 5, 1);
+    }
+  }, [LoginData]);
+
   return (
     <div className="projectContainer">
       <div className="title">
         <div className="title-info">
           <h2>Projects</h2>
         </div>
-        {LoginData?.userGroup==="Manager"&&   
+        {LoginData?.userGroup === "Manager" && (
           <button onClick={() => navigate("/dashboard/create_project")}>
-          <i className="fa-regular fa-plus"></i> Add New Project
-        </button>}
-
+            <i className="fa-regular fa-plus"></i> Add New Project
+          </button>
+        )}
       </div>
       {/* Model Delete */}
       <Modal show={show} onHide={handleClose}>
@@ -272,6 +212,28 @@ export default function Projects() {
           </div>
         </Modal.Body>
       </Modal>
+      <form className="w-50 mb-4">
+        <div className="input-group mb-3">
+          <div className="input-group-prepend">
+            <span
+              className="input-group-text"
+              id="basic-addon1"
+              style={{ height: "32px", cursor: "pointer" }}
+            >
+              <i className="fa-solid fa-magnifying-glass "></i>
+            </span>
+          </div>
+          <input
+            type="text"
+            className="form-control"
+            placeholder="title"
+            aria-label="title"
+            aria-describedby="basic-addon1"
+            style={{ height: "32px", borderRadius: "8px" }}
+            onChange={Searchelement}
+          />
+        </div>
+      </form>
       {/* Table */}
       {Load ? (
         <div
@@ -289,28 +251,6 @@ export default function Projects() {
         <NoData />
       ) : (
         <div className="table-container mt-4">
-          <form className="w-50 mb-4">
-            <div className="input-group mb-3">
-              <div className="input-group-prepend">
-                <span
-                  className="input-group-text"
-                  id="basic-addon1"
-                  style={{ height: "32px", cursor: "pointer" }}
-                >
-                  <i className="fa-solid fa-magnifying-glass "></i>
-                </span>
-              </div>
-              <input
-                type="text"
-                className="form-control"
-                placeholder="title"
-                aria-label="title"
-                aria-describedby="basic-addon1"
-                style={{ height: "32px", borderRadius: "8px" }}
-                onChange={Searchelement}
-              />
-            </div>
-          </form>
           <table className="table text-center">
             <thead>
               <tr>
@@ -328,37 +268,35 @@ export default function Projects() {
                   <td>{item?.title}</td>
                   <td>{item.task.length}</td>
                   <td>{item.description}</td>
-                  <td>
-                    <Dropdown>
-                      <Dropdown.Toggle
-                        as="span"
-                        className="dropdown-toggle-custom"
-                      >
-                        <FaEllipsisV style={{ cursor: "pointer" }} />
-                      </Dropdown.Toggle>
+                  {LoginData.userGroup === "Manager" && (
+                    <td>
+                      <Dropdown>
+                        <Dropdown.Toggle
+                          as="span"
+                          className="dropdown-toggle-custom"
+                        >
+                          <FaEllipsisV style={{ cursor: "pointer" }} />
+                        </Dropdown.Toggle>
 
-                      <Dropdown.Menu>
-                        <Dropdown.Item href="#/view">
-                          <i className="fa-regular fa-eye text-success "></i>{" "}
-                          View
-                        </Dropdown.Item>
-                        <Dropdown.Item
-                          href="#/edit"
-                          onClick={() => handleupdateShow(item.id)}
-                        >
-                          <i className="fa-regular fa-pen-to-square text-success"></i>{" "}
-                          Edit
-                        </Dropdown.Item>
-                        <Dropdown.Item
-                          href="#/delete"
-                          onClick={() => handleShow(item.id)}
-                        >
-                          <i className="fa-solid fa-trash text-success"></i>{" "}
-                          Delete
-                        </Dropdown.Item>
-                      </Dropdown.Menu>
-                    </Dropdown>
-                  </td>
+                        <Dropdown.Menu>
+                          <Dropdown.Item
+                            href="#/edit"
+                            onClick={() => handleupdateShow(item)}
+                          >
+                            <i className="fa-regular fa-pen-to-square text-success"></i>{" "}
+                            Edit
+                          </Dropdown.Item>
+                          <Dropdown.Item
+                            href="#/delete"
+                            onClick={() => handleShow(item.id)}
+                          >
+                            <i className="fa-solid fa-trash text-success"></i>{" "}
+                            Delete
+                          </Dropdown.Item>
+                        </Dropdown.Menu>
+                      </Dropdown>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

@@ -37,7 +37,7 @@ export default function MasterLayout() {
   return (
     <>
       {/* شريط التنقل العلوي */}
-      <Box sx={{ position: "fixed", top: "0", left: "0", width: "100%"}}>
+      <Box sx={{ position: "fixed", top: "0", left: "0", width: "100%",zIndex:1000}}>
         <Navbar setNoneOrBlock={setNoneOrBlock} setChangeVariant={setChangeVariant} />
       </Box>
 
