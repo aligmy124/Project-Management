@@ -51,102 +51,99 @@ export default function ProjectsEmployee() {
   }, []);
 
   return (
-    <div className="projectContainer">
-      <div className="title">
-        <div className="title-info">
-          <h2>Projects</h2>
-        </div>
-      </div>
-      <form className="w-50 mb-4">
-        <div className="input-group mb-3">
-          <div className="input-group-prepend">
-            <span
-              className="input-group-text"
-              id="basic-addon1"
-              style={{ height: "32px", cursor: "pointer" }}
-            >
-              <i className="fa-solid fa-magnifying-glass "></i>
-            </span>
-          </div>
-          <input
-            type="text"
-            className="form-control"
-            placeholder="title"
-            aria-label="title"
-            aria-describedby="basic-addon1"
-            style={{ height: "32px", borderRadius: "8px" }}
-            onChange={Searchelement}
-          />
-        </div>
-      </form>
-      {/* Table */}
-      {Load ? (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            height: "50vh",
-            textAlign: "center",
-          }}
-        >
-          <Loading />
-        </div>
-      ) : projectList.length == 0 ? (
-        <NoData />
-      ) : (
-        <div className="table-container mt-4">
-          <table className="table text-center">
-            <thead>
-              <tr>
-                <th scope="col">Title</th>
-                <th scope="col">Description</th>
-                <th scope="col">Num Tasks</th>
-                <th scope="col">ModificationDate</th>
-                <th scope="col">CreationDate</th>
-              </tr>
-            </thead>
-            <tbody>
-              {projectList.map((item, index) => (
-                <tr key={index}>
-                  <td>{item?.title}</td>
-                  <td>{item?.description}</td>
-                  <td>{item?.task.length}</td>
-                  <td>{new Date(item?.modificationDate).toLocaleDateString()}</td>
-                  <td>
-                    {new Date(item?.task[0].creationDate).toLocaleDateString()}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <div className="pagination-container mt-3">
-            <ul className="pagination">
-              <li className="page-item">
-                <a className="page-link" href="#" aria-label="Previous">
-                  <span aria-hidden="true">&laquo;</span>
-                </a>
-              </li>
-              {Arrayofpages.map((pageNo) => (
-                <li
-                  key={pageNo}
-                  className="page-item"
-                  onClick={() => getProjects(5,pageNo,search)}
-                >
-                  <a className="page-link" href="#">
-                    {pageNo}
-                  </a>
-                </li>
-              ))}
-              <li className="page-item">
-                <a className="page-link" href="#" aria-label="Next">
-                  <span aria-hidden="true">&raquo;</span>
-                </a>
-              </li>
-            </ul>
-          </div>
-        </div>
-      )}
+<div className="projectContainer container-fluid p-3">
+  <div className="title mb-4">
+    <div className="title-info">
+      <h2 className="fs-4 fw-semibold">Projects</h2>
     </div>
+  </div>
+
+  {/* Search Form */}
+  <form className="col-12 col-md-8 col-lg-6 mb-4">
+    <div className="input-group">
+      <span className="input-group-text" style={{ cursor: "pointer" }}>
+        <i className="fa-solid fa-magnifying-glass"></i>
+      </span>
+      <input
+        type="text"
+        className="form-control"
+        placeholder="Search by title"
+        aria-label="title"
+        onChange={Searchelement}
+      />
+    </div>
+  </form>
+
+  {/* Table */}
+  {Load ? (
+    <div
+      className="d-flex justify-content-center align-items-center"
+      style={{ height: "50vh" }}
+    >
+      <Loading />
+    </div>
+  ) : projectList.length === 0 ? (
+    <NoData />
+  ) : (
+    <div className="table-container mt-4 table-responsive">
+      <table className="table table-striped table-bordered text-center align-middle">
+        <thead className="table-dark">
+          <tr>
+            <th scope="col">Title</th>
+            <th scope="col">Description</th>
+            <th scope="col">Num Tasks</th>
+            <th scope="col">Modification Date</th>
+            <th scope="col">Creation Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {projectList.map((item, index) => (
+            <tr key={index}>
+              <td>{item?.title}</td>
+              <td className="text-truncate" style={{ maxWidth: "200px" }}>
+                {item?.description}
+              </td>
+              <td>{item?.task.length}</td>
+              <td>{new Date(item?.modificationDate).toLocaleDateString()}</td>
+              <td>
+                {item?.task.length > 0
+                  ? new Date(item?.task[0].creationDate).toLocaleDateString()
+                  : "-"}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      {/* Pagination */}
+      <div className="pagination-container mt-3 d-flex justify-content-center">
+        <ul className="pagination">
+          <li className="page-item">
+            <a className="page-link" href="#" aria-label="Previous">
+              <span aria-hidden="true">&laquo;</span>
+            </a>
+          </li>
+          {Arrayofpages.map((pageNo) => (
+            <li
+              key={pageNo}
+              className="page-item"
+              onClick={() => getProjects(5, pageNo, search)}
+            >
+              <a className="page-link" href="#">
+                {pageNo}
+              </a>
+            </li>
+          ))}
+          <li className="page-item">
+            <a className="page-link" href="#" aria-label="Next">
+              <span aria-hidden="true">&raquo;</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  )}
+</div>
+
   );
 }

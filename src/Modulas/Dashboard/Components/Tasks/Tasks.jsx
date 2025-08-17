@@ -175,16 +175,37 @@ export default function Projects() {
     getUsers();
   }, []);
   return (
-    <div className="projectContainer">
-      <div className="title">
-        <div className="title-info">
-          <h2>Tasks</h2>
-        </div>
-        <button onClick={() => navigate("/dashboard/create_task")}>
-          <i className="fa-regular fa-plus"></i> Add New Task
-        </button>
-      </div>
-      {/* modal */}
+
+<div className="projectContainer">
+  {/* Header */}
+  <div className="title d-flex flex-wrap justify-content-between align-items-center mb-3">
+    <div className="title-info">
+      <h2 className="mb-0">Tasks</h2>
+    </div>
+    <button
+      onClick={() => navigate("/dashboard/create_task")}
+      className="btn btn-primary d-flex align-items-center gap-2 mt-2 mt-md-0"
+    >
+      <i className="fa-regular fa-plus"></i> Add New Task
+    </button>
+  </div>
+
+  {/* Search */}
+  <form className="w-100 w-md-50 mb-4">
+    <div className="input-group">
+      <span className="input-group-text" style={{ cursor: "pointer" }}>
+        <i className="fa-solid fa-magnifying-glass"></i>
+      </span>
+      <input
+        type="text"
+        className="form-control"
+        placeholder="Search by title..."
+        onChange={Searchelement}
+      />
+    </div>
+  </form>
+
+        {/* modal */}
       <Modal show={show} onHide={handleClose}>
         <Modal.Header closeButton></Modal.Header>
         <Modal.Body>
@@ -274,156 +295,114 @@ export default function Projects() {
           </div>
         </Modal.Body>
       </Modal>
-      <form className="w-50 mb-4">
-        <div className="input-group mb-3">
-          <div className="input-group-prepend">
-            <span
-              className="input-group-text"
-              id="basic-addon1"
-              style={{ height: "32px", cursor: "pointer" }}
-            >
-              <i className="fa-solid fa-magnifying-glass "></i>
-            </span>
-          </div>
-          <input
-            type="text"
-            className="form-control"
-            placeholder="title"
-            aria-label="title"
-            aria-describedby="basic-addon1"
-            style={{ height: "32px", borderRadius: "8px" }}
-            onChange={Searchelement}
-          />
-        </div>
-      </form>
-      {/* Table */}
-      {Load ? (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            height: "50vh",
-            textAlign: "center",
-          }}
-        >
-          <Loading />
-        </div>
-      ) : projectList.length == 0 ? (
-        <NoData />
-      ) : (
-        <div className="table-container mt-4">
-          <table className="table text-center">
-            <thead>
-              <tr>
-                <th scope="col">id</th>
-                <th scope="col">Title</th>
-                <th scope="col">Status</th>
-                <th scope="col">userName</th>
-                <th scope="col">Description</th>
-                <th scope="col"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {tasks.map((item, index) => (
-                <tr key={index}>
-                  <th scope="row">{index + 1}</th>
-                  <td>{item?.title}</td>
-                  <td>
-                    <button
-                      style={{
-                        backgroundColor: statusColors[item?.status] || "gray", // اللون حسب الحالة
-                        padding: "10px 25px",
-                        borderRadius: "16px",
-                        border: "none",
-                        color: "#fff",
-                        cursor: "pointer",
-                      }}
-                    >
-                      {item?.status}
-                    </button>
-                  </td>
 
-                  <td>{item?.project?.manager?.userName}</td>
-                  <td>{item?.project?.description}</td>
-                  <td>
-                    <Dropdown>
-                      <Dropdown.Toggle
-                        as="span"
-                        className="dropdown-toggle-custom"
-                      >
-                        <FaEllipsisV style={{ cursor: "pointer" }} />
-                      </Dropdown.Toggle>
-
-                      <Dropdown.Menu>
-                        <Dropdown.Item
-                          href="#/edit"
-                          onClick={() => handleupdateShow(item)}
-                        >
-                          <i className="fa-regular fa-pen-to-square text-success"></i>{" "}
-                          Edit
-                        </Dropdown.Item>
-                        <Dropdown.Item
-                          href="#/delete"
-                          onClick={() => handleShow(item.id)}
-                        >
-                          <i className="fa-solid fa-trash text-success"></i>{" "}
-                          Delete
-                        </Dropdown.Item>
-                      </Dropdown.Menu>
-                    </Dropdown>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <div className="pagination-container mt-3">
-            <ul className="pagination">
-              {/* Previous */}
-              <li
-                className={`page-item ${currentPage === 1 ? "disabled" : ""}`}
-                onClick={() =>
-                  currentPage > 1 && getTasks(search, 5, currentPage - 1)
-                }
-              >
-                <a className="page-link" href="#" aria-label="Previous">
-                  <span aria-hidden="true">&laquo;</span>
-                </a>
-              </li>
-
-              {/* Page Numbers */}
-              {Arrayofpages.map((pageNo) => (
-                <li
-                  key={pageNo}
-                  className={`page-item ${
-                    pageNo === currentPage ? "active" : ""
-                  }`}
-                  onClick={() => getTasks(search, 5, pageNo)}
-                >
-                  <a className="page-link" href="#">
-                    {pageNo}
-                  </a>
-                </li>
-              ))}
-
-              {/* Next */}
-              <li
-                className={`page-item ${
-                  currentPage === Arrayofpages.length ? "disabled" : ""
-                }`}
-                onClick={() =>
-                  currentPage < Arrayofpages.length &&
-                  getTasks(search, 5, currentPage + 1)
-                }
-              >
-                <a className="page-link" href="#" aria-label="Next">
-                  <span aria-hidden="true">&raquo;</span>
-                </a>
-              </li>
-            </ul>
-          </div>
-        </div>
-      )}
+  {/* Loading / No Data */}
+  {Load ? (
+    <div className="d-flex justify-content-center align-items-center" style={{ height: "50vh" }}>
+      <Loading />
     </div>
+  ) : projectList.length === 0 ? (
+    <NoData />
+  ) : (
+    <>
+      {/* Table */}
+      <div className="table-responsive shadow-sm rounded">
+        <table className="table table-hover table-striped text-center align-middle">
+          <thead className="table-light">
+            <tr>
+              <th>ID</th>
+              <th>Title</th>
+              <th>Status</th>
+              <th>User</th>
+              <th>Description</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {tasks.map((item, index) => (
+              <tr key={index}>
+                <td>{index + 1}</td>
+                <td>{item?.title}</td>
+                <td>
+                  <span
+                    className="badge px-3 py-2 rounded-pill"
+                    style={{
+                      backgroundColor: statusColors[item?.status] || "gray",
+                      color: "#fff",
+                    }}
+                  >
+                    {item?.status}
+                  </span>
+                </td>
+                <td>{item?.project?.manager?.userName}</td>
+                <td className="text-truncate" style={{ maxWidth: "250px" }}>
+                  {item?.project?.description}
+                </td>
+                <td>
+                  <Dropdown>
+                    <Dropdown.Toggle as="span" className="dropdown-toggle-custom">
+                      <FaEllipsisV style={{ cursor: "pointer" }} />
+                    </Dropdown.Toggle>
+                    <Dropdown.Menu>
+                      <Dropdown.Item onClick={() => handleupdateShow(item)}>
+                        <i className="fa-regular fa-pen-to-square text-success"></i> Edit
+                      </Dropdown.Item>
+                      <Dropdown.Item onClick={() => handleShow(item.id)}>
+                        <i className="fa-solid fa-trash text-danger"></i> Delete
+                      </Dropdown.Item>
+                    </Dropdown.Menu>
+                  </Dropdown>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Pagination */}
+      <nav className="d-flex justify-content-center mt-4">
+        <ul className="pagination flex-wrap">
+          {/* Previous */}
+          <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
+            <button
+              className="page-link"
+              onClick={() => currentPage > 1 && getTasks(search, 5, currentPage - 1)}
+            >
+              &laquo;
+            </button>
+          </li>
+
+          {/* Page Numbers */}
+          {Arrayofpages.map((pageNo) => (
+            <li
+              key={pageNo}
+              className={`page-item ${pageNo === currentPage ? "active" : ""}`}
+            >
+              <button
+                className="page-link"
+                onClick={() => getTasks(search, 5, pageNo)}
+              >
+                {pageNo}
+              </button>
+            </li>
+          ))}
+
+          {/* Next */}
+          <li className={`page-item ${currentPage === Arrayofpages.length ? "disabled" : ""}`}>
+            <button
+              className="page-link"
+              onClick={() =>
+                currentPage < Arrayofpages.length && getTasks(search, 5, currentPage + 1)
+              }
+            >
+              &raquo;
+            </button>
+          </li>
+        </ul>
+      </nav>
+    </>
+  )}
+</div>
+
   );
 }

@@ -132,202 +132,177 @@ export default function ProjectsAdmin() {
   }, [LoginData]);
 
   return (
-    <div className="projectContainer">
-      <div className="title">
-        <div className="title-info">
-          <h2>Projects</h2>
-        </div>
-        {LoginData?.userGroup === "Manager" && (
-          <button onClick={() => navigate("/dashboard/create_project")}>
-            <i className="fa-regular fa-plus"></i> Add New Project
-          </button>
-        )}
-      </div>
-      {/* Model Delete */}
-      <Modal show={show} onHide={handleClose}>
-        <Modal.Header closeButton></Modal.Header>
-        <Modal.Body>
-          <ModeDelete />
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="success" onClick={handleClose}>
-            Close
-          </Button>
-          <Button
-            variant="border border-danger text-danger"
-            onClick={DeleteItem}
-          >
-            Delete Item
-          </Button>
-        </Modal.Footer>
-      </Modal>
-      {/* Model Update */}
-      <Modal show={showUpdate} onHide={handleupdateClose}>
-        <Modal.Header closeButton></Modal.Header>
-        <Modal.Body>
-          <div className="update_item">
-            <form onSubmit={handleSubmit(Updateitem)}>
-              <div className="form-group mb-4">
-                <label htmlFor="title">Title</label>
-                <input
-                  className="form-control"
-                  type="text"
-                  id="title"
-                  placeholder="title"
-                  {...register("title", {
-                    required: "title is required",
-                  })}
-                />
-                {errors.title && (
-                  <p className="text-danger">{errors.title.message}</p>
-                )}
-              </div>
-              <div className="form-group">
-                <label htmlFor="textArea">Description</label>
-                <textarea
-                  className="form-control"
-                  id="textArea"
-                  rows="3"
-                  placeholder="description"
-                  {...register("description", {
-                    required: "description is required",
-                  })}
-                ></textarea>
-                {errors.description && (
-                  <p className="text-danger">{errors.description.message}</p>
-                )}
-              </div>
-              <Modal.Footer>
-                <Button variant="success" onClick={handleupdateClose}>
-                  Close
-                </Button>
-                <Button
-                  variant="border border-danger text-danger"
-                  type="submit"
-                >
-                  Update Item
-                </Button>
-              </Modal.Footer>
-            </form>
-          </div>
-        </Modal.Body>
-      </Modal>
-      <form className="w-50 mb-4">
-        <div className="input-group mb-3">
-          <div className="input-group-prepend">
-            <span
-              className="input-group-text"
-              id="basic-addon1"
-              style={{ height: "32px", cursor: "pointer" }}
-            >
-              <i className="fa-solid fa-magnifying-glass "></i>
-            </span>
-          </div>
-          <input
-            type="text"
-            className="form-control"
-            placeholder="title"
-            aria-label="title"
-            aria-describedby="basic-addon1"
-            style={{ height: "32px", borderRadius: "8px" }}
-            onChange={Searchelement}
-          />
-        </div>
-      </form>
-      {/* Table */}
-      {Load ? (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            height: "50vh",
-            textAlign: "center",
-          }}
-        >
-          <Loading />
-        </div>
-      ) : projectList.length == 0 ? (
-        <NoData />
-      ) : (
-        <div className="table-container mt-4">
-          <table className="table text-center">
-            <thead>
-              <tr>
-                <th scope="col">id</th>
-                <th scope="col">Title</th>
-                <th scope="col">Num Tasks</th>
-                <th scope="col">Description</th>
-                <th scope="col"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {projectList.map((item, index) => (
-                <tr key={index}>
-                  <th scope="row">{index + 1}</th>
-                  <td>{item?.title}</td>
-                  <td>{item.task.length}</td>
-                  <td>{item.description}</td>
-                  {LoginData.userGroup === "Manager" && (
-                    <td>
-                      <Dropdown>
-                        <Dropdown.Toggle
-                          as="span"
-                          className="dropdown-toggle-custom"
-                        >
-                          <FaEllipsisV style={{ cursor: "pointer" }} />
-                        </Dropdown.Toggle>
-
-                        <Dropdown.Menu>
-                          <Dropdown.Item
-                            href="#/edit"
-                            onClick={() => handleupdateShow(item)}
-                          >
-                            <i className="fa-regular fa-pen-to-square text-success"></i>{" "}
-                            Edit
-                          </Dropdown.Item>
-                          <Dropdown.Item
-                            href="#/delete"
-                            onClick={() => handleShow(item.id)}
-                          >
-                            <i className="fa-solid fa-trash text-success"></i>{" "}
-                            Delete
-                          </Dropdown.Item>
-                        </Dropdown.Menu>
-                      </Dropdown>
-                    </td>
-                  )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <div className="pagination-container mt-3">
-            <ul className="pagination">
-              <li className="page-item">
-                <a className="page-link" href="#" aria-label="Previous">
-                  <span aria-hidden="true">&laquo;</span>
-                </a>
-              </li>
-              {Arrayofpages.map((pageNo) => (
-                <li
-                  key={pageNo}
-                  className="page-item"
-                  onClick={() => getProjects(search, 5, pageNo)}
-                >
-                  <a className="page-link" href="#">
-                    {pageNo}
-                  </a>
-                </li>
-              ))}
-              <li className="page-item">
-                <a className="page-link" href="#" aria-label="Next">
-                  <span aria-hidden="true">&raquo;</span>
-                </a>
-              </li>
-            </ul>
-          </div>
-        </div>
-      )}
+<div className="projectContainer container-fluid p-3">
+  {/* Title & Add Project */}
+  <div className="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-3">
+    <div className="title-info">
+      <h2 className="fs-4 fw-semibold mb-0">Projects</h2>
     </div>
+    {LoginData?.userGroup === "Manager" && (
+      <button
+        className="btn text-white fw-medium px-3 py-2 rounded-3"
+        style={{backgroundColor:"rgba(239, 155, 40, 1)"}}
+        onClick={() => navigate("/dashboard/create_project")}
+      >
+        <i className="fa-regular fa-plus me-2"></i> Add New Project
+      </button>
+    )}
+  </div>
+
+  {/* Delete Modal */}
+  <Modal show={show} onHide={handleClose}>
+    <Modal.Header closeButton></Modal.Header>
+    <Modal.Body>
+      <ModeDelete />
+    </Modal.Body>
+    <Modal.Footer>
+      <Button onClick={handleClose}>
+        Close
+      </Button>
+      <Button variant="outline-danger" onClick={DeleteItem}>
+        Delete Item
+      </Button>
+    </Modal.Footer>
+  </Modal>
+
+  {/* Update Modal */}
+  <Modal show={showUpdate} onHide={handleupdateClose}>
+    <Modal.Header closeButton></Modal.Header>
+    <Modal.Body>
+      <div className="update_item">
+        <form onSubmit={handleSubmit(Updateitem)}>
+          <div className="form-group mb-4">
+            <label htmlFor="title">Title</label>
+            <input
+              className="form-control"
+              type="text"
+              id="title"
+              placeholder="title"
+              {...register("title", { required: "title is required" })}
+            />
+            {errors.title && <p className="text-danger">{errors.title.message}</p>}
+          </div>
+          <div className="form-group">
+            <label htmlFor="textArea">Description</label>
+            <textarea
+              className="form-control"
+              id="textArea"
+              rows="3"
+              placeholder="description"
+              {...register("description", { required: "description is required" })}
+            ></textarea>
+            {errors.description && <p className="text-danger">{errors.description.message}</p>}
+          </div>
+          <Modal.Footer>
+            <Button variant="success" onClick={handleupdateClose}>
+              Close
+            </Button>
+            <Button variant="outline-success" type="submit">
+              Update Item
+            </Button>
+          </Modal.Footer>
+        </form>
+      </div>
+    </Modal.Body>
+  </Modal>
+
+  {/* Search Form */}
+  <form className="col-12 col-md-8 col-lg-6 mb-4">
+    <div className="input-group">
+      <span className="input-group-text" style={{ cursor: "pointer" }}>
+        <i className="fa-solid fa-magnifying-glass"></i>
+      </span>
+      <input
+        type="text"
+        className="form-control"
+        placeholder="Search by title"
+        aria-label="title"
+        onChange={Searchelement}
+      />
+    </div>
+  </form>
+
+  {/* Table */}
+  {Load ? (
+    <div className="d-flex justify-content-center align-items-center" style={{ height: "50vh" }}>
+      <Loading />
+    </div>
+  ) : projectList.length === 0 ? (
+    <NoData />
+  ) : (
+    <div className="table-responsive mt-4">
+      <table className="table table-striped table-bordered text-center align-middle">
+        <thead className="table-dark">
+          <tr>
+            <th scope="col">Id</th>
+            <th scope="col">Title</th>
+            <th scope="col">Num Tasks</th>
+            <th scope="col">Description</th>
+            {LoginData.userGroup === "Manager" && <th scope="col">Actions</th>}
+          </tr>
+        </thead>
+        <tbody>
+          {projectList.map((item, index) => (
+            <tr key={index}>
+              <th scope="row">{index + 1}</th>
+              <td>{item?.title}</td>
+              <td>{item.task.length}</td>
+              <td className="text-truncate" style={{ maxWidth: "200px" }}>
+                {item.description}
+              </td>
+              {LoginData.userGroup === "Manager" && (
+                <td>
+                  <Dropdown>
+                    <Dropdown.Toggle as="span" className="dropdown-toggle-custom">
+                      <FaEllipsisV style={{ cursor: "pointer" }} />
+                    </Dropdown.Toggle>
+                    <Dropdown.Menu>
+                      <Dropdown.Item onClick={() => handleupdateShow(item)}>
+                        <i className="fa-regular fa-pen-to-square text-success me-2"></i>
+                        Edit
+                      </Dropdown.Item>
+                      <Dropdown.Item onClick={() => handleShow(item.id)}>
+                        <i className="fa-solid fa-trash text-success me-2"></i>
+                        Delete
+                      </Dropdown.Item>
+                    </Dropdown.Menu>
+                  </Dropdown>
+                </td>
+              )}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )}
+
+  {/* Pagination */}
+  <div className="d-flex justify-content-center mt-3">
+    <ul className="pagination">
+      <li className="page-item">
+        <a className="page-link" href="#" aria-label="Previous">
+          <span aria-hidden="true">&laquo;</span>
+        </a>
+      </li>
+      {Arrayofpages.map((pageNo) => (
+        <li
+          key={pageNo}
+          className="page-item"
+          onClick={() => getProjects(search, 5, pageNo)}
+        >
+          <a className="page-link" href="#">
+            {pageNo}
+          </a>
+        </li>
+      ))}
+      <li className="page-item">
+        <a className="page-link" href="#" aria-label="Next">
+          <span aria-hidden="true">&raquo;</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+</div>
+
   );
 }

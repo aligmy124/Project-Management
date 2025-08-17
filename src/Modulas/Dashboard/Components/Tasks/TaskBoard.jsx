@@ -96,92 +96,127 @@ export default function TaskBoard(){
           </div>;
   if (error) return <div className="alert alert-danger text-center">{error}</div>;
 
-  return (
-    <div className="container mt-5">
-      <div className="title mb-5">
-        <h2 style={{ fontSize: "28px", fontWeight: "500", color: "rgba(79, 79, 79, 1)" }}>
-          Task Board
-        </h2>
-      </div>
-
-      <DragDropContext onDragEnd={onDragEnd}>
-        <div className="row">
-          {["ToDo", "InProgress", "Done"].map((status) => (
-            <div key={status} className="col-md-4 mb-4">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                <Droppable droppableId={status}>
-                  {(provided) => (
-                    <div
-                      ref={provided.innerRef}
-                      {...provided.droppableProps}
-                      className="p-3 rounded shadow-sm"
-                      style={{
-                        minHeight: "500px",
-                        backgroundColor: "rgba(245, 245, 245, 0.9)"
-                      }}
-                    >
-                      <h5 className="text-center mb-4 p-2 rounded text-white"
-                        style={{ backgroundColor: statusColors[status] }}>
-                        {status === "ToDo" ? "To Do" : 
-                         status === "InProgress" ? "In Progress" : "Done"}
-                      </h5>
-                      
-                      {tasks
-                        .filter(task => task.status === status)
-                        .map((task, index) => (
-                          <Draggable
-                            key={task.id}
-                            draggableId={String(task.id)}
-                            index={index}
-                          >
-                            {(provided, snapshot) => (
-                              <motion.div
-                                ref={provided.innerRef}
-                                {...provided.draggableProps}
-                                {...provided.dragHandleProps}
-                                className="p-3 mb-3 rounded shadow-sm"
-                                style={{
-                                  backgroundColor: snapshot.isDragging 
-                                    ? "rgba(255, 255, 255, 0.9)" 
-                                    : "white",
-                                  borderLeft: `4px solid ${statusColors[status]}`,
-                                  ...provided.draggableProps.style
-                                }}
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
-                              >
-                                <h6 className="mb-2">{task.title}</h6>
-                                <p className="small text-muted mb-1">
-                                  {task.description.replace(/<[^>]*>/g, '').substring(0, 80)}
-                                  {task.description.length > 80 && '...'}
-                                </p>
-                                {task.project && (
-                                  <span className="badge bg-secondary me-2">
-                                    {task.project.title}
-                                  </span>
-                                )}
-                                {task.employee && (
-                                  <span className="badge bg-info">
-                                    {task.employee.userName}
-                                  </span>
-                                )}
-                              </motion.div>
-                            )}
-                          </Draggable>
-                        ))}
-                      {provided.placeholder}
-                    </div>
-                  )}
-                </Droppable>
-              </motion.div>
-            </div>
-          ))}
-        </div>
-      </DragDropContext>
+return (
+  <div className="container mt-5">
+    <div className="title mb-5 text-center">
+      <h2
+        style={{
+          fontSize: "clamp(20px, 3vw, 28px)", // متجاوب
+          fontWeight: "500",
+          color: "rgba(79, 79, 79, 1)",
+        }}
+      >
+        Task Board
+      </h2>
     </div>
-  );
+
+    <DragDropContext onDragEnd={onDragEnd}>
+      <div
+        className="task-board-grid"
+        style={{
+          display: "grid",
+          gap: "1rem",
+          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+        }}
+      >
+        {["ToDo", "InProgress", "Done"].map((status) => (
+          <motion.div
+            key={status}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Droppable droppableId={status}>
+              {(provided) => (
+                <div
+                  ref={provided.innerRef}
+                  {...provided.droppableProps}
+                  className="p-3 rounded shadow-sm"
+                  style={{
+                    minHeight: "400px",
+                    maxHeight: "70vh",
+                    overflowY: "auto", // لو العمود فيه tasks كتير
+                    backgroundColor: "rgba(245, 245, 245, 0.9)",
+                  }}
+                >
+                  <h5
+                    className="text-center mb-4 p-2 rounded text-white"
+                    style={{
+                      backgroundColor: statusColors[status],
+                      fontSize: "clamp(14px, 2vw, 18px)", // متجاوب
+                    }}
+                  >
+                    {status === "ToDo"
+                      ? "To Do"
+                      : status === "InProgress"
+                      ? "In Progress"
+                      : "Done"}
+                  </h5>
+
+                  {tasks
+                    .filter((task) => task.status === status)
+                    .map((task, index) => (
+                      <Draggable
+                        key={task.id}
+                        draggableId={String(task.id)}
+                        index={index}
+                      >
+                        {(provided, snapshot) => (
+                          <motion.div
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
+                            className="p-3 mb-3 rounded shadow-sm"
+                            style={{
+                              backgroundColor: snapshot.isDragging
+                                ? "rgba(255, 255, 255, 0.9)"
+                                : "white",
+                              borderLeft: `4px solid ${statusColors[status]}`,
+                              ...provided.draggableProps.style,
+                            }}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                          >
+                            <h6
+                              className="mb-2"
+                              style={{
+                                fontSize: "clamp(14px, 2vw, 16px)",
+                                fontWeight: "600",
+                              }}
+                            >
+                              {task.title}
+                            </h6>
+                            <p
+                              className="small text-muted mb-1"
+                              style={{ fontSize: "clamp(12px, 1.5vw, 14px)" }}
+                            >
+                              {task.description
+                                .replace(/<[^>]*>/g, "")
+                                .substring(0, 80)}
+                              {task.description.length > 80 && "..."}
+                            </p>
+                            {task.project && (
+                              <span className="badge bg-secondary me-2">
+                                {task.project.title}
+                              </span>
+                            )}
+                            {task.employee && (
+                              <span className="badge bg-info">
+                                {task.employee.userName}
+                              </span>
+                            )}
+                          </motion.div>
+                        )}
+                      </Draggable>
+                    ))}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </motion.div>
+        ))}
+      </div>
+    </DragDropContext>
+  </div>
+);
 };

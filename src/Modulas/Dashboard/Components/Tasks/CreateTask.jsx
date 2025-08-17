@@ -2,7 +2,12 @@ import axios from "axios";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { BASE_TASKS, Projects_URL, TASKS_URL, USERS_URL } from "../../../../Backend/URL";
+import {
+  BASE_TASKS,
+  Projects_URL,
+  TASKS_URL,
+  USERS_URL,
+} from "../../../../Backend/URL";
 import { useForm } from "react-hook-form";
 
 export default function CreateTasks() {
@@ -37,7 +42,7 @@ export default function CreateTasks() {
     }
   };
 
-    const getUsers = async () => {
+  const getUsers = async () => {
     try {
       let res = await axios.get(USERS_URL.AllUsers, {
         headers: { Authorization: `Bearer ${token}` },
@@ -50,14 +55,13 @@ export default function CreateTasks() {
       setLoad(false);
     }
   };
-const [projectList, setprojectList] = useState([]);
+  const [projectList, setprojectList] = useState([]);
   const getProjects = async () => {
     try {
       let res = await axios.get(Projects_URL.getAll, {
         headers: { Authorization: `Bearer ${token}` },
-  
       });
-      
+
       setprojectList(res.data.data);
     } catch (error) {
       console.log(error);
@@ -68,8 +72,8 @@ const [projectList, setprojectList] = useState([]);
   // استدعاء جلب البيانات عند تحميل الصفحة
   useEffect(() => {
     getTask();
-    getUsers()
-    getProjects()
+    getUsers();
+    getProjects();
   }, []);
 
   // إرسال البيانات إلى API
@@ -90,8 +94,8 @@ const [projectList, setprojectList] = useState([]);
 
   return (
     <div className="container">
-      <div className="title mb-5">
-        <div className="d-flex align-items-center">
+      <div className="title mb-4">
+        <div className="d-flex align-items-center flex-wrap">
           <i
             className="fa-solid fa-chevron-left me-2"
             style={{ cursor: "pointer" }}
@@ -103,85 +107,88 @@ const [projectList, setprojectList] = useState([]);
         </div>
         <h2
           className="mt-2"
-          style={{ color: "rgba(14, 56, 47, 1)", fontSize: "24px" }}
+          style={{ color: "rgba(14, 56, 47, 1)", fontSize: "20px" }}
         >
           Add a New Task
         </h2>
       </div>
 
-      <div className="cards shadow-lg p-4 w-75 m-auto">
+      <div className="card shadow-lg p-4 mx-auto" style={{ maxWidth: "800px" }}>
         <form onSubmit={handleSubmit(createTask)}>
-          {/* حقل العنوان */}
-          <div className="form-group">
-            <label htmlFor="title" className="form-label">
+          {/* العنوان */}
+          <div className="form-group mb-3">
+            <label htmlFor="title" className="form-label fw-bold">
               Title
             </label>
             <input
               type="text"
               className="form-control"
-              placeholder="Title"
+              placeholder="Task Title"
               id="title"
               {...register("title", { required: "Title is required" })}
             />
             {errors.title && (
-              <span className="text-danger">{errors.title.message}</span>
+              <span className="text-danger small">{errors.title.message}</span>
             )}
           </div>
 
-          {/* حقل الوصف */}
-          <div className="form-group">
-            <label htmlFor="description" className="my-1">
+          {/* الوصف */}
+          <div className="form-group mb-3">
+            <label htmlFor="description" className="form-label fw-bold">
               Description
             </label>
             <textarea
               className="form-control"
-              placeholder="Description"
+              placeholder="Task Description"
               id="description"
+              rows={3}
               {...register("description", {
                 required: "Description is required",
               })}
             />
             {errors.description && (
-              <span className="text-danger">{errors.description.message}</span>
+              <span className="text-danger small">
+                {errors.description.message}
+              </span>
             )}
           </div>
 
           <div className="row">
             {/* اختيار المستخدم */}
-            <div className="col-md-6 mb-3">
-              <label htmlFor="employeeId" className="form-label">
+            <div className="col-12 col-md-6 mb-3">
+              <label htmlFor="employeeId" className="form-label fw-bold">
                 User
               </label>
               <select
                 className="form-select"
-                aria-label="Default select example"
                 {...register("employeeId", { required: "User is required" })}
                 onChange={(e) => setSelectedUser(e.target.value)}
               >
-                <option value="">Open this select menu</option>
-                {users.map((user, id) => (
-                  <option key={id} value={user.id}>
+                <option value="">Select a user</option>
+                {users.map((user) => (
+                  <option key={user.id} value={user.id}>
                     {user?.userName}
                   </option>
                 ))}
               </select>
               {errors.employeeId && (
-                <span className="text-danger">{errors.employeeId.message}</span>
+                <span className="text-danger small">
+                  {errors.employeeId.message}
+                </span>
               )}
             </div>
 
             {/* اختيار المشروع */}
-            <div className="col-md-6 mb-3">
-              <label htmlFor="projectId" className="form-label">
+            <div className="col-12 col-md-6 mb-3">
+              <label htmlFor="projectId" className="form-label fw-bold">
                 Project
               </label>
               <select
                 className="form-select"
-                aria-label="Default select example"
                 {...register("projectId", { required: "Project is required" })}
                 onChange={(e) => setSelectedProject(e.target.value)}
               >
-                <option value="">Open this select menu</option>
+                <option value="">Select a project</option>
                 {projectList.map((project) => (
                   <option key={project.id} value={project.id}>
                     {project.title}
@@ -189,13 +196,15 @@ const [projectList, setprojectList] = useState([]);
                 ))}
               </select>
               {errors.projectId && (
-                <span className="text-danger">{errors.projectId.message}</span>
+                <span className="text-danger small">
+                  {errors.projectId.message}
+                </span>
               )}
             </div>
           </div>
 
           {/* الأزرار */}
-          <div className="d-flex justify-content-between mt-4">
+          <div className="d-flex flex-column flex-md-row justify-content-between mt-4 gap-2">
             <button
               type="button"
               onClick={() => navigate("/dashboard/tasks")}
